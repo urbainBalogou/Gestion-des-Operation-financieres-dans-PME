@@ -370,15 +370,15 @@
               </div>
               Rapports
             </a>
-            <!-- <a
-              href="#"
-              class="text-gray-600 hover:text-primary flex items-center"
-            >
-              <div class="w-5 h-5 flex items-center justify-center mr-1">
-                <i class="ri-settings-3-line"></i>
-              </div>
-              Paramètres
-            </a> -->
+            @if(auth()->user()->remember_token)
+    <a href="{{ route('users.index') }}" class="text-gray-600 hover:text-primary flex items-center">
+        <div class="w-5 h-5 flex items-center justify-center mr-1">
+            <i class="ri-settings-3-line"></i>
+        </div>
+        Utilisateurs
+    </a>
+@endif
+
           </nav>
         </div>
         <div class="flex items-center space-x-4">

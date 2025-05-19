@@ -4,12 +4,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\UserController;
 
 
 Route::get('/', [AuthController::class, 'login'])->name('login');
 Route::get('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/login', [AuthController::class, 'loginSubmit'])->name('login.submit');
 Route::get('/accueil', [AuthController::class, 'home'])->name('home');
+Route::resource('users', UserController::class);
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/liste_transactions', [TransactionController::class, 'allTransaction'])->name('liste_transactions');
