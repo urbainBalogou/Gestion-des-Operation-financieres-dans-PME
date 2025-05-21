@@ -32,8 +32,19 @@
             <td class="px-4 py-2">Retraits</td>
             <td class="px-4 py-2 text-red-600 font-bold">- FCFA {{ number_format($retrait, 2, ',', ' ') }}</td>
           </tr>
+          
         </tbody>
       </table>
+      <div class="bg-white rounded shadow p-4 mb-6">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-lg font-semibold text-blue-700">
+      {{ $mois_date->translatedFormat('F Y') }}
+    </h2>
+    <a href="{{ route('transactions.rapport.pdf', ['annee_mois' => $mois_date->format('Y-m')]) }}"
+       class="text-blue-600 hover:underline text-sm">
+      📄 Exporter le PDF
+    </a>
+  </div>
     </div>
   @endforeach
 </div>

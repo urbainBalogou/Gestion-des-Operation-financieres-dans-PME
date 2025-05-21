@@ -23,21 +23,8 @@
         <button type="submit" class="col-span-2 md:col-span-1 bg-blue-600 text-white px-4 py-2 rounded">Rechercher</button>
     </div>
 </form>
-<div
-      id="transactionModal"
-      class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden"
-    >
-  <h2 class="font-bold text-gray-800 text-xl">Les transactions</h2>
-        <!-- <a
-          href="#"
-          class="text-primary hover:underline text-sm flex items-center"
-        >
-          Voir toutes
-          <div class="w-4 h-4 flex items-center justify-center ml-1">
-            <i class="ri-arrow-right-line"></i>
-          </div>
-        </a> -->
-      </div>
+
+  
     
      <div class="bg-white rounded shadow-sm border border-gray-100 overflow-hidden mb-6">
   <div class="overflow-x-auto transaction-table">

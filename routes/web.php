@@ -20,6 +20,9 @@ Route::middleware(['auth'])->group(function () {
       Route::get('/transactions', [TransactionController::class, 'filter'])->name('transactions.filter');
     Route::delete('/transactions/{id}/destroy', [TransactionController::class, 'destroy'])->name('transactions.destroy');
     Route::put('/transactions/{id}/update', [TransactionController::class, 'update'])->name('transactions.update');
+Route::get('/rapport/exporter/{annee_mois}', [TransactionController::class, 'exportPdf'])->name('transactions.rapport.pdf');
+
+
 });
 Route::get('/rapport-mensuel', [TransactionController::class, 'rapportMensuel'])->name('transactions.rapport');
 

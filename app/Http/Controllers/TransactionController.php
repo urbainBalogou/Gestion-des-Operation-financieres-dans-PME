@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Categorie;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 
 class TransactionController extends Controller {
@@ -18,6 +19,28 @@ class TransactionController extends Controller {
     $transactions = Transaction::with('categorie')->orderBy('date', 'desc')->get();
      $categories = Categorie::all();
     return view("transaction.transaction", compact("transactions","categories"));
+}
+
+public function exportPdf($annee)
+{
+    Carbon::setLocale('fr');
+
+    $transactions_par_mois = Transaction::selectRaw('
+            YEAR(date) as annee,
+            MONTH(date) as mois,
+            type,
+            SUM(montant) as total
+        ')
+        ->whereYear('date', $annee)
+        ->groupBy('annee', 'mois', 'type')
+        ->orderByDesc('mois')
+        ->get()
+        ->groupBy(function ($item) {
+            return $item->annee . '-' . str_pad($item->mois, 2, '0', STR_PAD_LEFT);
+        });
+
+    $pdf = Pdf::loadView('transaction.rapport_pdf', compact('transactions_par_mois', 'annee'));
+    return $pdf->download("rapport_{$annee}.pdf");
 }
 
 
