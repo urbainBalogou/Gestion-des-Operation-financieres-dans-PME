@@ -8,8 +8,8 @@
         <input type="number" name="montant" placeholder="Montant exact" class="border px-3 py-2 rounded" value="{{ request('montant') }}">
         <select name="type" class="border px-3 py-2 rounded">
             <option value="">Type</option>
-            <option value="Dépot" {{ request('type') == 'Dépot' ? 'selected' : '' }}>Dépot</option>
-            <option value="Retrait" {{ request('type') == 'Retrait' ? 'selected' : '' }}>Retrait</option>
+            <option value="depot" {{ request('type') == 'depot' ? 'selected' : '' }}>Dépot</option>
+            <option value="debit" {{ request('type') == 'debit' ? 'selected' : '' }}>Retrait</option>
         </select>
         <select name="categorie_id" class="border px-3 py-2 rounded">
             <option value="">Catégorie</option>
