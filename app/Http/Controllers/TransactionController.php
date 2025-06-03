@@ -102,6 +102,9 @@ public function rapportMensuel()
 
 public function store(Request $request)
 {
+    $tvaApplicable = $request->merge([
+    'tva_applicable' => $request->has('tva_applicable'),
+]);
     try {
         $validated = $request->validate([
             'type' => 'required|in:depot,debit',
@@ -113,7 +116,6 @@ public function store(Request $request)
             'attachment' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,pdf',
         ]);
 
-        $tvaApplicable = $request->boolean('tva_applicable');
         $taux = 0;
         $montantTva = 0;
         $montantTtc = $validated['amount_ht'];

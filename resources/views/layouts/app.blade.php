@@ -381,12 +381,12 @@
         <div class="w-5 h-5 flex items-center justify-center mr-1">
             <i class="ri-settings-3-line"></i>
         </div>
-        Taux de TVA
+        Taux TVA
     </a>
 
 @endif
 
-          </nav>
+        </nav>
         </div>
         <div class="flex items-center space-x-4">
           <!-- <div class="relative hidden md:block">
@@ -423,11 +423,6 @@
             Nouvelle Catégorie
           </button>
           </a>
-          <div
-            class="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full cursor-pointer"
-          >
-            <i class="ri-notification-3-line text-gray-600"></i>
-          </div>
           <div
             class="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full cursor-pointer md:hidden"
             id="mobileMenuBtn"
