@@ -11,7 +11,6 @@
         @method('PUT')
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Type de transaction -->
             <div class="transition duration-300 ease-in-out transform hover:-translate-y-1">
                 <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type de transaction</label>
                 <div class="relative">
@@ -26,19 +25,41 @@
                     </div>
                 </div>
             </div>
+    <!-- Type, montant TTC, catégorie, date, description... (déjà en place) -->
 
-            <!-- Montant -->
-            <div class="transition duration-300 ease-in-out transform hover:-translate-y-1">
-                <label for="montant" class="block text-sm font-medium text-gray-700 mb-1">Montant (F)</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span class="text-gray-500 sm:text-sm">F</span>
-                    </div>
-                    <input type="number" step="0.01" id="montant" name="montant" value="{{ $transaction->montant }}" 
-                           class="w-full border border-gray-300 pl-10 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
-                </div>
-            </div>
+    <!-- Checkbox Appliquer TVA -->
+    <div class="transition duration-300 ease-in-out transform hover:-translate-y-1">
+        <label for="tva_applicable" class="inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="tva_applicable" name="tva_applicable" value="1" 
+                {{ $transaction->montant_tva > 0 ? 'checked' : '' }} 
+                class="form-checkbox h-5 w-5 text-blue-600">
+            <span class="ml-2 text-gray-700">Appliquer TVA</span>
+        </label>
+    </div>
+
+    <!-- Conteneur pour les champs liés à la TVA -->
+    <div id="tva-fields" style="{{ $transaction->montant_tva > 0 ? '' : 'display:none;' }}">
+        <!-- Montant HT -->
+        <div class="transition duration-300 ease-in-out transform hover:-translate-y-1">
+            <label for="montant_ht" class="block text-sm font-medium text-gray-700 mb-1">Montant HT (F)</label>
+            <input type="number" step="0.01" id="montant_ht" name="montant_ht" value="{{ old('montant_ht', $transaction->montant_ht) }}" 
+                class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" >
         </div>
+
+        <!-- Montant TVA -->
+        <div class="transition duration-300 ease-in-out transform hover:-translate-y-1">
+            <label for="montant_tva" class="block text-sm font-medium text-gray-700 mb-1">Montant TVA (F)</label>
+            <input type="number" step="0.01" id="montant_tva" name="montant_tva" value="{{ old('montant_tva', $transaction->montant_tva) }}" readonly 
+                class="w-full border border-gray-300 px-4 py-3 rounded-lg bg-gray-100 cursor-not-allowed">
+        </div>
+    </div>
+
+    <!-- Montant TTC -->
+    <div class="transition duration-300 ease-in-out transform hover:-translate-y-1">
+        <label for="montant" class="block text-sm font-medium text-gray-700 mb-1">Montant TTC (F)</label>
+        <input type="number" step="0.01" id="montant" name="montant" value="{{ old('montant', $transaction->montant) }}" 
+               class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+    </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Catégorie -->
@@ -100,6 +121,50 @@
         </div>
     </form>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tvaCheckbox = document.getElementById('tva_applicable');
+    const tvaFields = document.getElementById('tva-fields');
+    const montantHtInput = document.getElementById('montant_ht');
+    const montantTvaInput = document.getElementById('montant_tva');
+    const montantTtcInput = document.getElementById('montant');
+
+    // Ici, tu peux mettre ton taux de TVA (à récupérer dynamiquement si tu veux)
+    const tauxTva = {{ \App\Models\ParametreTva::latest('updated_at')->first()->taux ?? 0 }};
+
+    function toggleTvaFields() {
+        if (tvaCheckbox.checked) {
+            tvaFields.style.display = '';
+            montantHtInput.required = true;
+        } else {
+            tvaFields.style.display = 'none';
+            montantHtInput.required = false;
+            montantTvaInput.value = '';
+        }
+        updateMontantTtc();
+    }
+
+    function updateMontantTtc() {
+        if (tvaCheckbox.checked) {
+            const montantHt = parseFloat(montantHtInput.value) || 0;
+            const montantTva = +(montantHt * (tauxTva / 100)).toFixed(2);
+            montantTvaInput.value = montantTva;
+            montantTtcInput.value = +(montantHt + montantTva).toFixed(2);
+        } else {
+            // si TVA non appliquée, montant TTC = montant HT ou TTC selon ce que tu veux
+            montantTvaInput.value = '';
+        }
+    }
+
+    // Écouteurs d’évènements
+    tvaCheckbox.addEventListener('change', toggleTvaFields);
+    montantHtInput.addEventListener('input', updateMontantTtc);
+
+    // Initialisation au chargement
+    toggleTvaFields();
+});
+</script>
+
 
 <script>
     // Script pour mettre en évidence visuellement le type de transaction

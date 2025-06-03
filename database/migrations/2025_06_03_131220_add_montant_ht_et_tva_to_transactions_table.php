@@ -12,9 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('transactions', function (Blueprint $table) {
-            //
-             $table->dropColumn('categorie');
-            $table->foreignId('categorie_id')->nullable()->constrained('categories')->onDelete('set null');
+             $table->decimal('montant_ht', 10, 2)->nullable()->after('montant');
+            $table->decimal('montant_tva', 10, 2)->nullable()->after('montant_ht');
         });
     }
 
@@ -23,8 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('transactions', function (Blueprint $table) {
-            //
+         Schema::table('transactions', function (Blueprint $table) {
+            $table->dropColumn(['montant_ht', 'montant_tva']);
         });
     }
 };

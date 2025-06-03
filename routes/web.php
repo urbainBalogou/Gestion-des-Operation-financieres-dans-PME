@@ -6,6 +6,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
 
+use App\Http\Controllers\Admin\TvaController;
 
 Route::get('/', [AuthController::class, 'login'])->name('login');
 Route::get('/register', [AuthController::class, 'register'])->name('register');
@@ -24,6 +25,13 @@ Route::get('/rapport/exporter/{annee_mois}', [TransactionController::class, 'exp
 
 
 });
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/tva', [TvaController::class, 'edit'])->name('admin.tva.edit');
+    Route::post('/tva', [TvaController::class, 'update'])->name('admin.tva.update');
+});
+
 Route::get('/rapport-mensuel', [TransactionController::class, 'rapportMensuel'])->name('transactions.rapport');
 
 

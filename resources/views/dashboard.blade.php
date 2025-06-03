@@ -203,10 +203,18 @@
             </td>
 
             <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                {{ $transaction->piece_jointe ? 'Complété' : 'En attente' }}
-              </span>
-            </td>
+    @if ($transaction->piece_jointe)
+        <a href="{{ asset('storage/' . $transaction->piece_jointe) }}" target="_blank" 
+           class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 hover:underline">
+           Complété
+        </a>
+    @else
+        <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+            En attente
+        </span>
+    @endif
+</td>
+
 
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <div class="flex justify-end space-x-2">

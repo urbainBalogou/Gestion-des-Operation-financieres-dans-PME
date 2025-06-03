@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaction;
+use App\Models\ParametreTva;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Categorie;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Exception;
+use Illuminate\Support\Facades\Log;
 
 
 class TransactionController extends Controller {
@@ -97,53 +100,115 @@ public function rapportMensuel()
     return view('transaction.rapport', compact('transactions_par_mois',"categories"));
 }
 
-
-
-    public function store(Request $request)
+public function store(Request $request)
 {
-    $validated = $request->validate([
-        'type' => 'required|in:depot,debit',
-        'amount' => 'required|numeric|min:0',
-        'category_id' => 'required|exists:categories,id',
-        'date' => 'required|date',
-        'description' => 'nullable|string',
-        'attachment' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,pdf',
-    ]);
+    try {
+        $validated = $request->validate([
+            'type' => 'required|in:depot,debit',
+            'amount_ht' => 'required|numeric|min:0',
+            'tva_applicable' => 'nullable|boolean',
+            'category_id' => 'required|exists:categories,id',
+            'date' => 'required|date',
+            'description' => 'nullable|string',
+            'attachment' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,pdf',
+        ]);
 
-    if ($request->hasFile('attachment')) {
-        $validated['attachment'] = $request->file('attachment')->store('attachments', 'public');
+        $tvaApplicable = $request->boolean('tva_applicable');
+        $taux = 0;
+        $montantTva = 0;
+        $montantTtc = $validated['amount_ht'];
+
+        if ($tvaApplicable) {
+            $paramTva = ParametreTva::latest('updated_at')->first();
+            if ($paramTva && $paramTva->taux > 0) {
+                $taux = $paramTva->taux;
+                $montantTva = round($validated['amount_ht'] * ($taux / 100), 2);
+                $montantTtc = round($validated['amount_ht'] + $montantTva, 2);
+            }
+        }
+
+        if ($request->hasFile('attachment')) {
+            $validated['attachment'] = $request->file('attachment')->store('attachments', 'public');
+        }
+
+        Transaction::create([
+            'type' => $validated['type'],
+            'montant' => $montantTtc,
+            'montant_ht' => $validated['amount_ht'],
+            'montant_tva' => $montantTva,
+            'categorie_id' => $validated['category_id'],
+            'date' => $validated['date'],
+            'description' => $validated['description'] ?? null,
+            'piece_jointe' => $validated['attachment'] ?? null,
+            'user_id' => Auth::id(),
+        ]);
+
+        return back()->with('success', 'Transaction enregistrée avec succès.');
+    } catch (Exception $e) {
+        // Logger l’erreur pour analyse technique
+        dd($e->getMessage());
+        Log::error('Erreur lors de l\'enregistrement de la transaction : ' . $e->getMessage());
+
+        // Rediriger avec un message d’erreur
+        return back()->withErrors(['error' => 'Une erreur est survenue lors de l\'enregistrement de la transaction. Veuillez réessayer.']);
     }
-
-    $validated['user_id'] = Auth::id();
-    Transaction::create([
-        'type' => $validated['type'],
-        'montant' => $validated['amount'],
-        'categorie_id' => $validated['category_id'],
-        'date' => $validated['date'],
-        'description' => $validated['description'] ?? null,
-        'piece_jointe' => $validated['attachment'] ?? null,
-        'user_id' => $validated['user_id'],
-    ]);
-
-    return back()->with('success', 'Transaction enregistrée avec succès.');
 }
+
 
 public function update(Request $request, $id)
 {
+    try {
     $request->validate([
-        'type' => 'required',
-        'montant' => 'required|numeric',
-        'categorie_id' => 'required',
+        'type' => 'required|in:Dépot,Retrait',
+        'montant_ht' => 'nullable|numeric|min:0',
+        'montant' => 'required|numeric|min:0',
+        'categorie_id' => 'required|exists:categories,id',
         'date' => 'required|date',
         'description' => 'nullable|string',
-        'attachment' => 'nullable|string',
+        'tva_applicable' => 'nullable|boolean',
     ]);
 
     $transaction = Transaction::findOrFail($id);
-    $transaction->update($request->all());
+
+    $tvaApplicable = $request->boolean('tva_applicable');
+    $taux = 0;
+    $montantTva = 0;
+    $montantHt = $request->input('montant_ht', $request->montant);
+    $montantTtc = $request->montant;
+
+    if ($tvaApplicable) {
+        $paramTva = ParametreTva::latest('updated_at')->first();
+        if ($paramTva && $paramTva->taux > 0) {
+            $taux = $paramTva->taux;
+            $montantTva = round($montantHt * ($taux / 100), 2);
+            $montantTtc = round($montantHt + $montantTva, 2);
+        }
+    } else {
+        $montantHt = $request->montant; // si pas de TVA, montant_ht = montant TTC
+        $montantTva = 0;
+    }
+
+    $transaction->update([
+        'type' => $request->type,
+        'montant_ht' => $montantHt,
+        'montant_tva' => $montantTva,
+        'montant' => $montantTtc,
+        'categorie_id' => $request->categorie_id,
+        'date' => $request->date,
+        'description' => $request->description,
+    ]);
 
     return redirect()->route('liste_transactions')->with('success', 'Transaction mise à jour avec succès.');
+    } catch (Exception $e) {
+        // Logger l’erreur pour analyse technique
+        dd($e->getMessage());
+        Log::error('Erreur lors de l\'enregistrement de la transaction : ' . $e->getMessage());
+
+        // Rediriger avec un message d’erreur
+        return back()->withErrors(['error' => 'Une erreur est survenue lors de l\'enregistrement de la transaction. Veuillez réessayer.']);
+    }
 }
+
 
 public function destroy($id)
 {

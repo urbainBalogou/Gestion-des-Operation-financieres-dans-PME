@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('transactions', function (Blueprint $table) {
-            //
-             $table->dropColumn('categorie');
-            $table->foreignId('categorie_id')->nullable()->constrained('categories')->onDelete('set null');
+        Schema::create('parametre_tvas', function (Blueprint $table) {
+            $table->id();
+             $table->decimal('taux', 5, 2);
+            $table->timestamp('updated_at')->nullable();
         });
     }
 
@@ -23,8 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('transactions', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('parametre_tvas');
     }
 };
